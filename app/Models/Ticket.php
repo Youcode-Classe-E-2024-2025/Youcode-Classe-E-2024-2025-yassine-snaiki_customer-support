@@ -10,18 +10,21 @@ class Ticket extends Model
     /** @use HasFactory<\Database\Factories\TicketFactory> */
     use HasFactory;
     protected $fillable = [
-        'customer_id', 'agent_id', 'title', 'description', 'status', 'priority', 'created_at', 'updated_at'
+        'customer_id', 'agent_id', 'title', 'description', 'status'
     ];
 
     // Relationships
     public function customer()
     {
-        return $this->belongsTo(Customer::class);
+        return $this->belongsTo(User::class);
     }
 
     public function agent()
     {
-        return $this->belongsTo(Agent::class);
+        return $this->belongsTo(User::class);
+    }
+    public function ticketHistories() {
+        return $this->hasMany(TicketHistory::class);
     }
 
 }
