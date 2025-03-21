@@ -16,7 +16,7 @@ return new class extends Migration {
             $table->foreignId('agent_id')->nullable()->constrained('users')->onDelete('set null');
             $table->string('title');
             $table->text('description');
-            $table->enum('status', ['open', 'closed']);
+            $table->enum('status', ['created','open', 'closed'])->default('created');
             $table->timestamps();
         });
     }
