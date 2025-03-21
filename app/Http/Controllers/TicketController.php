@@ -1,6 +1,7 @@
 <?php
 namespace App\Http\Controllers;
 
+use App\Facades\TicketFacade;
 use App\Models\Ticket;
 use Illuminate\Http\Request;
 
@@ -30,6 +31,17 @@ class TicketController extends Controller
      *     path="/tickets",
      *     summary="List all tickets",
      *     tags={"Tickets"},
+     * @OA\Parameter(
+     *         name="page",
+     *         in="query",
+     *         required=false,
+     *         description="Page number for pagination",
+     *         @OA\Schema(
+     *             type="integer",
+     *             default=1
+     *         )
+     *     ),
+     *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="A paginated list of tickets",
@@ -46,7 +58,15 @@ class TicketController extends Controller
      */
     public function index()
     {
-        return response()->json(Ticket::paginate(10));
+        $this->authorize('index', Ticket::class);
+        $tickets = TicketFacade::getAll();
+        return response()->json($tickets);
+    }
+
+    public function myTickets($request){
+        $this->authorize('myTickets', Ticket::class);
+        $tickets = TicketFacade::myTickets($request->user());
+        return response()->json($tickets);
     }
 
     /**
@@ -85,9 +105,9 @@ class TicketController extends Controller
             'agent_id' => 'nullable|integer',
             'title' => 'required|string',
             'description' => 'required|string',
-            'status' => 'required|in:open,closed',
+            'status' => 'required|in:created,open,closed',
         ]);
-        $ticket = Ticket::create($data);
+        $ticket = TicketFacade::create($data);
         return response()->json($ticket);
     }
 
@@ -96,6 +116,7 @@ class TicketController extends Controller
      *     path="/tickets/{id}",
      *     summary="Get a specific ticket",
      *     tags={"Tickets"},
+     *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -114,8 +135,9 @@ class TicketController extends Controller
      *     )
      * )
      */
-    public function show(Ticket $ticket)
+    public function show(?Ticket $ticket)
     {
+        $ticket->load('customer', 'agent', 'ticketHistories');
         return response()->json($ticket);
     }
 
@@ -136,11 +158,8 @@ class TicketController extends Controller
      *         required=true,
      *         description="Ticket object with updated information",
      *         @OA\JsonContent(
-     *             required={"customer_id", "title", "description", "status"},
-     *             @OA\Property(property="customer_id", type="integer", example=1),
+     *             required={"agent_id", "status"},
      *             @OA\Property(property="agent_id", type="integer", example=2),
-     *             @OA\Property(property="title", type="string", example="Issue with login"),
-     *             @OA\Property(property="description", type="string", example="Unable to log in with valid credentials"),
      *             @OA\Property(property="status", type="string", enum={"open", "closed"}, example="open")
      *         )
      *     ),
@@ -157,14 +176,12 @@ class TicketController extends Controller
      */
     public function update(Request $request, Ticket $ticket)
     {
+        $this->authorize('update', $ticket);
         $data = $request->validate([
-            'customer_id' => 'required|integer',
             'agent_id' => 'nullable|integer',
-            'title' => 'required|string',
-            'description' => 'required|string',
             'status' => 'required|in:open,closed',
         ]);
-        $ticket->update($data);
+        TicketFacade::update($ticket, $data);
         return response()->json($ticket);
     }
 
@@ -196,7 +213,8 @@ class TicketController extends Controller
      */
     public function destroy(Ticket $ticket)
     {
-        $ticket->delete();
+        $this->authorize('destroy', $ticket);
+        TicketFacade::delete($ticket);
         return response()->json(['message' => 'Ticket deleted successfully']);
     }
 }
