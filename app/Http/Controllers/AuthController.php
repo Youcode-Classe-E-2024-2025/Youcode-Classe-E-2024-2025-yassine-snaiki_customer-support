@@ -26,8 +26,8 @@ class AuthController extends Controller
      *         description="User credentials",
      *         @OA\JsonContent(
      *             required={"email", "password"},
-     *             @OA\Property(property="email", type="string", format="email", example="user@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="secret123")
+     *             @OA\Property(property="email", type="string", format="email", example="user@gmail.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password")
      *         )
      *     ),
      *     @OA\Response(
@@ -74,10 +74,10 @@ class AuthController extends Controller
      *         description="User registration details",
      *         @OA\JsonContent(
      *             required={"name", "email", "password", "password_confirmation"},
-     *             @OA\Property(property="name", type="string", example="John Doe"),
-     *             @OA\Property(property="email", type="string", format="email", example="john.doe@example.com"),
-     *             @OA\Property(property="password", type="string", format="password", example="secret123"),
-     *             @OA\Property(property="password_confirmation", type="string", format="password", example="secret123")
+     *             @OA\Property(property="name", type="string", example="user"),
+     *             @OA\Property(property="email", type="string", format="email", example="user@gmail.com"),
+     *             @OA\Property(property="password", type="string", format="password", example="password"),
+     *             @OA\Property(property="password_confirmation", type="string", format="password", example="password")
      *         )
      *     ),
      *     @OA\Response(
@@ -96,18 +96,17 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         // Validate the incoming request
-        $request->validate([
+        $data = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'password' => 'required|string|confirmed|min:6',
+            'role' => 'string',
         ]);
 
         // Create the new user
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        $user = User::create(
+            $data
+        );
         return response()->json(['message', 'user was registered successfully'], 201);
     }
 
