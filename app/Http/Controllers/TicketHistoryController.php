@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Facades\TicketHistoryFacade;
 use App\Models\TicketHistory;
 use Illuminate\Http\Request;
 
@@ -24,9 +25,10 @@ class TicketHistoryController extends Controller
 {
     /**
      * @OA\Get(
-     *     path="/ticket-histories",
+     *     path="/ticket_histories",
      *     summary="List all ticket histories",
      *     tags={"TicketHistories"},
+     *     security={{"sanctum":{}}},
      *     @OA\Response(
      *         response=200,
      *         description="A paginated list of ticket histories",
@@ -43,12 +45,13 @@ class TicketHistoryController extends Controller
      */
     public function index()
     {
-        return response()->json(TicketHistory::paginate(10));
+        $ticketHistories = TicketHistoryFacade::getAll();
+        return response()->json($ticketHistories);
     }
 
     /**
      * @OA\Post(
-     *     path="/ticket-histories",
+     *     path="/ticket_histories",
      *     summary="Create a new ticket history",
      *     tags={"TicketHistories"},
      *     security={{"sanctum":{}}},
@@ -78,15 +81,16 @@ class TicketHistoryController extends Controller
             'ticket_id' => 'required|integer',
             'message' => 'required|string',
         ]);
-        $ticketHistory = TicketHistory::create($data);
+        $ticketHistory = TicketHistoryFacade::create($data);
         return response()->json($ticketHistory);
     }
 
     /**
      * @OA\Get(
-     *     path="/ticket-histories/{id}",
+     *     path="/ticket_histories/{id}",
      *     summary="Get a specific ticket history",
      *     tags={"TicketHistories"},
+     *     security={{"sanctum":{}}},
      *     @OA\Parameter(
      *         name="id",
      *         in="path",
@@ -112,7 +116,7 @@ class TicketHistoryController extends Controller
 
     /**
      * @OA\Delete(
-     *     path="/ticket-histories/{id}",
+     *     path="/ticket_histories/{id}",
      *     summary="Delete a ticket history",
      *     tags={"TicketHistories"},
      *     security={{"sanctum":{}}},
@@ -138,7 +142,7 @@ class TicketHistoryController extends Controller
      */
     public function destroy(TicketHistory $ticketHistory)
     {
-        $ticketHistory->delete();
+        TicketHistoryFacade::delete($ticketHistory);
         return response()->json(['message' => 'Ticket history deleted successfully']);
     }
 }
