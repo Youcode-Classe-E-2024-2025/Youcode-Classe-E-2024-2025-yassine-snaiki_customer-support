@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+
 
 /**
  * @OA\Info(
@@ -29,16 +31,19 @@ namespace App\Http\Controllers;
  *     name="TicketHistories",
  *     description="Endpoints for histories"
  * )
+
  * @OA\SecurityScheme(
  *     securityScheme="sanctum",
  *     type="http",
  *     scheme="bearer",
  *     bearerFormat="JWT",
- *     description="Use this to authenticate with Sanctum."
+ *     in="header",
+ *     description="Enter token in the format: Bearer {your_token}"
  * )
  */
 
+
 abstract class Controller
 {
-    //
+    use AuthorizesRequests;
 }
