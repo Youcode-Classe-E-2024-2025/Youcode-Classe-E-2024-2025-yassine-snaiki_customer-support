@@ -269,17 +269,12 @@
                                 "required": [
                                     "customer_id",
                                     "title",
-                                    "description",
-                                    "status"
+                                    "description"
                                 ],
                                 "properties": {
                                     "customer_id": {
                                         "type": "integer",
                                         "example": 1
-                                    },
-                                    "agent_id": {
-                                        "type": "integer",
-                                        "example": 2
                                     },
                                     "title": {
                                         "type": "string",
@@ -288,14 +283,6 @@
                                     "description": {
                                         "type": "string",
                                         "example": "Unable to log in with valid credentials"
-                                    },
-                                    "status": {
-                                        "type": "string",
-                                        "enum": [
-                                            "open",
-                                            "closed"
-                                        ],
-                                        "example": "open"
                                     }
                                 },
                                 "type": "object"
@@ -762,15 +749,9 @@
                 ],
                 "requestBody": {
                     "description": "User object with updated information",
-                    "required": true,
                     "content": {
                         "application/json": {
                             "schema": {
-                                "required": [
-                                    "name",
-                                    "email",
-                                    "password"
-                                ],
                                 "properties": {
                                     "name": {
                                         "type": "string",
