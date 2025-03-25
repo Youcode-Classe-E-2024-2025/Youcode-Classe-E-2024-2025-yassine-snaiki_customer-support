@@ -14,8 +14,11 @@ class TicketService
         return Ticket::with('customer', 'agent','ticketHistories')->paginate(10);
     }
 
-    public function create($data)
+    public function create($request)
     {
+        $data = $request->all();
+        $data['status'] = 'created';
+        $data['customer_id'] = $request->user()->id;
         $ticket = Ticket::create($data);
         TicketHistoryFacade::create([
             'ticket_id' => $ticket->id,
@@ -25,9 +28,10 @@ class TicketService
 
     }
 
-    public function update(Ticket $ticket, $data)
+    public function update(Ticket $ticket,Request $request)
     {
-        $ticket->update($data);
+
+        $ticket->update(['agent_id' => $request->user()->id,'status'=>$request->status]);
         TicketHistoryFacade::create([
             'ticket_id' => $ticket->id,
             'message' => "{$ticket->customer->email} ticket was $ticket->status by {$ticket->agent->email}",
@@ -40,8 +44,13 @@ class TicketService
         $ticket->delete();
         return ['message' => 'Ticket deleted successfully'];
     }
-    protected static function myTickets($user){
-        $tickets =  $user->tickets()->paginate(10);
+    public static function myTickets($user){
+        $tickets =  $user->customerTickets()->paginate(10);
+        $tickets->load('customer', 'agent', 'ticketHistories');
+        return $tickets;
+    }
+    public static function assignedTickets($user){
+        $tickets =  $user->agentTickets()->paginate(10);
         $tickets->load('customer', 'agent', 'ticketHistories');
         return $tickets;
     }
