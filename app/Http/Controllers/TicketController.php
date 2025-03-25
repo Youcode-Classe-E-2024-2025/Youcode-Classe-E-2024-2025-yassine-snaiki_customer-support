@@ -63,9 +63,14 @@ class TicketController extends Controller
         return response()->json($tickets);
     }
 
-    public function myTickets($request){
+    public function myTickets(Request $request){
         $this->authorize('myTickets', Ticket::class);
         $tickets = TicketFacade::myTickets($request->user());
+        return response()->json($tickets);
+    }
+    public function assignedTickets(Request $request){
+        $this->authorize('assignedTickets', Ticket::class);
+        $tickets = TicketFacade::assignedTickets($request->user());
         return response()->json($tickets);
     }
 
@@ -79,12 +84,10 @@ class TicketController extends Controller
      *         required=true,
      *         description="Ticket object that needs to be added",
      *         @OA\JsonContent(
-     *             required={"customer_id", "title", "description", "status"},
-     *             @OA\Property(property="customer_id", type="integer", example=1),
-     *             @OA\Property(property="agent_id", type="integer", example=2),
+     *             required={"customer_id", "title", "description"},
      *             @OA\Property(property="title", type="string", example="Issue with login"),
      *             @OA\Property(property="description", type="string", example="Unable to log in with valid credentials"),
-     *             @OA\Property(property="status", type="string", enum={"open", "closed"}, example="open")
+     *
      *         )
      *     ),
      *     @OA\Response(
@@ -100,14 +103,11 @@ class TicketController extends Controller
      */
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'customer_id' => 'required|integer',
-            'agent_id' => 'nullable|integer',
+        $request->validate([
             'title' => 'required|string',
             'description' => 'required|string',
-            'status' => 'required|in:created,open,closed',
         ]);
-        $ticket = TicketFacade::create($data);
+        $ticket = TicketFacade::create($request);
         return response()->json($ticket);
     }
 
@@ -135,11 +135,13 @@ class TicketController extends Controller
      *     )
      * )
      */
-    public function show(?Ticket $ticket)
+    public function show(Request $request,?Ticket $ticket)
     {
+        $this->authorize('view', $ticket);
         $ticket->load('customer', 'agent', 'ticketHistories');
         return response()->json($ticket);
     }
+
 
     /**
      * @OA\Put(
@@ -158,8 +160,7 @@ class TicketController extends Controller
      *         required=true,
      *         description="Ticket object with updated information",
      *         @OA\JsonContent(
-     *             required={"agent_id", "status"},
-     *             @OA\Property(property="agent_id", type="integer", example=2),
+     *             required={"status"},
      *             @OA\Property(property="status", type="string", enum={"open", "closed"}, example="open")
      *         )
      *     ),
@@ -177,11 +178,10 @@ class TicketController extends Controller
     public function update(Request $request, Ticket $ticket)
     {
         $this->authorize('update', $ticket);
-        $data = $request->validate([
-            'agent_id' => 'nullable|integer',
+        $request->validate([
             'status' => 'required|in:open,closed',
         ]);
-        TicketFacade::update($ticket, $data);
+        TicketFacade::update($ticket, $request);
         return response()->json($ticket);
     }
 
